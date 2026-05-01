@@ -1,0 +1,19 @@
+FINAL FIX - Run This ONE Command:
+
+cd /home/jwhite3321/vyrevault-website/portal
+bash RUN_ME_NOW.sh
+
+This will:
+1. Create PostgreSQL user jwhite3321 with SUPERUSER privileges
+2. Drop and recreate fsc_portal database
+3. Remove ALL permission restrictions
+4. Make database completely open
+
+After it completes, run:
+  cd server
+  npm run db:migrate
+  npm run db:seed
+  npm run dev
+
+Your .env file is already configured correctly:
+DATABASE_URL=postgresql://jwhite3321@localhost:5432/fsc_portal

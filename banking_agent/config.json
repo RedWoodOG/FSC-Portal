@@ -1,0 +1,34 @@
+{
+    "sites": [
+        {
+            "name": "Bavis Fabacraft",
+            "url": "https://blog.bavis.com",
+            "category": "Pneumatic/Drive-thru",
+            "scraper": "BavisScraper"
+        },
+        {
+            "name": "Cassida USA",
+            "url": "https://www.cassidausa.com/blogs/news",
+            "category": "Currency Counters",
+            "scraper": "CassidaScraper"
+        },
+        {
+            "name": "Medeco",
+            "url": "https://www.medeco.com/en/resources/blog",
+            "category": "Locks",
+            "scraper": "MedecoScraper"
+        },
+        {
+            "name": "American Vault",
+            "url": "https://americanvault.us",
+            "category": "Vaults/Safes",
+            "scraper": "AmericanVaultScraper"
+        },
+        {
+            "name": "Fenco",
+            "url": "https://fencobankequipment.com/products",
+            "category": "Teller/Storage",
+            "scraper": "FencoScraper"
+        }
+    ]
+}

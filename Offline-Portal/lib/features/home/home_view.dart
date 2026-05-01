@@ -1,0 +1,711 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../widgets/news_card.dart';
+import '../../widgets/news_feed.dart';
+import '../../theme/app_theme.dart';
+import '../../database/app_database.dart';
+import '../../app_shell/navigation_state.dart';
+import 'create_announcement_sheet.dart';
+import 'new_note_sheet.dart';
+import 'scan_receipt_sheet.dart';
+import '../../widgets/glass_card.dart';
+import '../admin/knowledge_import_screen.dart';
+
+class HomeView extends StatefulWidget {
+  const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  TrafficSnapshotData? _traffic;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrafficData();
+  }
+
+  Future<void> _loadTrafficData() async {
+    final db = context.read<AppDatabase>();
+    final traffic = await db.getLatestTraffic();
+
+    if (mounted) {
+      setState(() {
+        _traffic = traffic;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppGradients.deepOcean,
+        ),
+        child: LayoutBuilder(builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 1100;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context),
+                const SizedBox(height: 48),
+                if (isWide)
+                  _buildWideLayout(context)
+                else
+                  _buildNarrowLayout(context),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildWideLayout(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Main Dashboard Area
+        Expanded(
+          flex: 7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildMorningBriefing(context),
+              const SizedBox(height: 32),
+              _buildKpiRow(context),
+              const SizedBox(height: 48),
+              const NewsFeedWidget(),
+              const SizedBox(height: 48),
+              _buildCompanyFeedSection(context),
+            ],
+          ),
+        ),
+        const SizedBox(width: 48),
+        // Tactical Sidebar
+        Expanded(
+          flex: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTacticalShortcuts(context),
+              const SizedBox(height: 48),
+              _buildStatusPanel(context),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNarrowLayout(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildMorningBriefing(context),
+        const SizedBox(height: 32),
+        _buildKpiRow(context),
+        const SizedBox(height: 48),
+        _buildTacticalShortcuts(context),
+        const SizedBox(height: 48),
+        const NewsFeedWidget(),
+        const SizedBox(height: 48),
+        _buildStatusPanel(context),
+        const SizedBox(height: 48),
+        _buildCompanyFeedSection(context),
+      ],
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        Hero(
+          tag: 'portal_logo',
+          child: Container(
+            height: 48,
+            width: 48,
+            decoration: BoxDecoration(
+              gradient: AppGradients.primary,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.4),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                )
+              ],
+            ),
+            child: const Icon(Icons.bolt, color: Colors.white, size: 32),
+          ),
+        ),
+        const SizedBox(width: 20),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "FIELD SERVICE PORTAL",
+              style: AppTypography.sectionTitle.copyWith(
+                fontSize: 24,
+                letterSpacing: 1.5,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "OPERATIONAL STATE: SECURE",
+                  style: TextStyle(
+                    color: AppColors.success.withValues(alpha: 0.8),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const Spacer(),
+        _buildSearchButton(),
+        const SizedBox(width: 16),
+        _buildProfileCircle(),
+      ],
+    );
+  }
+
+  Widget _buildSearchButton() {
+    return GlassCard(
+      borderRadius: 12,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: const Row(
+        children: [
+          Icon(Icons.search, color: Colors.white60, size: 18),
+          SizedBox(width: 12),
+          Text("Quick Search (CTRL + K)",
+              style: TextStyle(color: Colors.white30, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileCircle() {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        gradient: AppGradients.primary,
+        shape: BoxShape.circle,
+      ),
+      child: const CircleAvatar(
+        radius: 20,
+        backgroundColor: AppColors.surface,
+        child: Icon(Icons.person_outline, size: 24, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildMorningBriefing(BuildContext context) {
+    return StreamBuilder<WeatherSnapshotData?>(
+      stream: context.read<AppDatabase>().watchLatestWeather(),
+      builder: (context, snapshot) {
+        final weather = snapshot.data;
+        final trafficCondition = _traffic?.conditionLabel ?? "Nominal";
+
+        return GlassCard(
+          padding: const EdgeInsets.all(32),
+          borderRadius: 24,
+          child: Row(
+            children: [
+              // Weather Status
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "ATMOSPHERIC CONDITIONS",
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Icon(
+                          _getWeatherIcon(weather?.condition),
+                          color: Colors.orangeAccent,
+                          size: 40,
+                        ),
+                        const SizedBox(width: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${weather?.temperature ?? '--'}°F",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            Text(
+                              weather?.condition.toUpperCase() ??
+                                  "SYNCHRONIZING...",
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                height: 80,
+                width: 1,
+                color: Colors.white.withValues(alpha: 0.1),
+                margin: const EdgeInsets.symmetric(horizontal: 40),
+              ),
+              // Logistic Status
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "LOGISTIC FEEDBACK",
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.navigation_outlined,
+                              color: AppColors.primary, size: 24),
+                        ),
+                        const SizedBox(width: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "TRAFFIC: ${trafficCondition.toUpperCase()}",
+                              style: TextStyle(
+                                color: trafficCondition
+                                        .toLowerCase()
+                                        .contains('heavy')
+                                    ? Colors.redAccent
+                                    : AppColors.success,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            Text(
+                              _traffic?.routeLabel ?? "SCANNING FIRST STOP...",
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildKpiRow(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: StreamBuilder<int>(
+            stream: context.read<AppDatabase>().watchOpenCallsCount(),
+            builder: (context, snapshot) => _buildKpiTile(
+              "ACTIVE DEPLOYMENTS",
+              snapshot.hasData ? snapshot.data!.toString() : "0",
+              Icons.assignment_turned_in_outlined,
+              AppColors.primary,
+            ),
+          ),
+        ),
+        const SizedBox(width: 24),
+        Expanded(
+          child: StreamBuilder<int>(
+            stream: context.read<AppDatabase>().watchCompletedCallsCount(),
+            builder: (context, snapshot) => _buildKpiTile(
+              "COMPLETED MISSIONS",
+              snapshot.hasData ? snapshot.data!.toString() : "0",
+              Icons.verified_outlined,
+              AppColors.success,
+            ),
+          ),
+        ),
+        const SizedBox(width: 24),
+        Expanded(
+          child: StreamBuilder<int>(
+            stream: context.read<AppDatabase>().watchWeeklyCallsCount(),
+            builder: (context, snapshot) => _buildKpiTile(
+              "WEEKLY THROUGHPUT",
+              snapshot.hasData ? snapshot.data!.toString() : "0",
+              Icons.leaderboard_outlined,
+              Colors.purpleAccent,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKpiTile(String label, String value, IconData icon, Color color) {
+    return GlassCard(
+      padding: const EdgeInsets.all(24),
+      borderRadius: 20,
+      activeBorderColor: color.withValues(alpha: 0.3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              Icon(icon, color: color, size: 20),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            height: 2,
+            width: 40,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTacticalShortcuts(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "TACTICAL UTILITIES",
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.4),
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 24),
+        GridView.count(
+          shrinkWrap: true,
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.4,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _buildActionTile(Icons.qr_code_scanner, "SCAN RECEIPTS",
+                AppColors.primary, () => _handleScanReceipt(context)),
+            _buildActionTile(Icons.edit_note, "INTEL ENTRY",
+                Colors.orangeAccent, () => _handleNewNote(context)),
+            _buildActionTile(Icons.map_outlined, "THEATRE MAP",
+                Colors.greenAccent, () => _handleMapView(context)),
+            _buildActionTile(Icons.terminal, "AGENT TOOLS", Colors.blueGrey,
+                () => _handleKnowledgeImport(context)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionTile(
+      IconData icon, String label, Color color, VoidCallback onTap) {
+    return GlassCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(20),
+      borderRadius: 16,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusPanel(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "MISSION DURATION",
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.4),
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 24),
+        GlassCard(
+          padding: const EdgeInsets.all(24),
+          borderRadius: 20,
+          child: Column(
+            children: [
+              _buildStatusRow("MISSION START", "08:00 AM", AppColors.success),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Divider(color: Colors.white10),
+              ),
+              _buildStatusRow("ESTIMATED END", "05:00 PM", Colors.white60),
+              const SizedBox(height: 24),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: 0.65,
+                  backgroundColor: Colors.white10,
+                  color: AppColors.primary,
+                  minHeight: 8,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusRow(String label, String value, Color valueColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                color: Colors.white38,
+                fontSize: 11,
+                fontWeight: FontWeight.bold)),
+        Text(value,
+            style: TextStyle(
+                color: valueColor, fontSize: 13, fontWeight: FontWeight.w900)),
+      ],
+    );
+  }
+
+  Widget _buildCompanyFeedSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildCompanyFeedHeader(context),
+        const SizedBox(height: 24),
+        _buildCompanyFeedList(context),
+      ],
+    );
+  }
+
+  Widget _buildCompanyFeedHeader(BuildContext context) {
+    return Row(
+      children: [
+        const Text("CORPORATE INTEL",
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0)),
+        const Spacer(),
+        IconButton(
+          icon: const Icon(Icons.add_circle_outline,
+              color: AppColors.primary, size: 20),
+          onPressed: () => _handlePostAnnouncement(context),
+        ),
+        TextButton(
+          onPressed: () {},
+          child: const Text("ACCESS ARCHIVE",
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompanyFeedList(BuildContext context) {
+    return StreamBuilder<List<CompanyAnnouncement>>(
+      stream: context.read<AppDatabase>().watchActiveCompanyAnnouncements(),
+      builder: (context, snapshot) {
+        final announcements = snapshot.data ?? [];
+        if (announcements.isEmpty)
+          return const Text("NO ACTIVE TRANSMISSIONS",
+              style: TextStyle(color: Colors.white24, fontSize: 12));
+
+        return SizedBox(
+          height: 180,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: announcements.length,
+            itemBuilder: (context, index) {
+              final item = announcements[index];
+              return Container(
+                width: 340,
+                margin: const EdgeInsets.only(right: 20),
+                child: NewsCard(
+                  title: item.title,
+                  body: item.body,
+                  icon: _getIconForCategory(item.category),
+                  accentColor: _getColorForCategory(item.category),
+                  actionLabel: item.actionLabel ?? "REVIEW",
+                  onAction: () => _handleAnnouncementAction(context, item),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  IconData _getWeatherIcon(String? condition) {
+    final c = condition?.toLowerCase() ?? "";
+    if (c.contains('cloud')) return Icons.cloud_outlined;
+    if (c.contains('rain')) return Icons.umbrella_outlined;
+    if (c.contains('sun') || c.contains('clear'))
+      return Icons.wb_sunny_outlined;
+    return Icons.wb_cloudy_outlined;
+  }
+
+  IconData _getIconForCategory(String category) {
+    switch (category.toLowerCase()) {
+      case 'hr':
+        return Icons.security_outlined;
+      case 'safety':
+        return Icons.warning_amber_outlined;
+      case 'fleet':
+        return Icons.local_shipping_outlined;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  Color _getColorForCategory(String category) {
+    switch (category.toLowerCase()) {
+      case 'hr':
+        return Colors.blueAccent;
+      case 'safety':
+        return Colors.redAccent;
+      case 'fleet':
+        return Colors.orangeAccent;
+      default:
+        return AppColors.primary;
+    }
+  }
+
+  void _handleScanReceipt(BuildContext context) {
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => const ScanReceiptSheet());
+  }
+
+  void _handleNewNote(BuildContext context) {
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => const NewNoteSheet());
+  }
+
+  void _handleMapView(BuildContext context) =>
+      context.read<NavigationState>().navigateToLocations();
+
+  void _handleKnowledgeImport(BuildContext context) {
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const KnowledgeImportScreen()));
+  }
+
+  void _handlePostAnnouncement(BuildContext context) {
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => const CreateAnnouncementSheet());
+  }
+
+  Future<void> _handleAnnouncementAction(
+      BuildContext context, CompanyAnnouncement announcement) async {
+    final db = context.read<AppDatabase>();
+    if (announcement.category == 'safety') {
+      await db.updateAnnouncementAcknowledged(announcement.id, true);
+      if (context.mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('TRANSMISSION ACKNOWLEDGED')));
+    }
+  }
+}
