@@ -2,6 +2,8 @@
 date: 2026-05-01
 topic: fsc-portal-overhaul
 status: draft
+updated: 2026-05-03
+roadmap_note: 2026-05-03 — GPS/fleet integration deferred until live system access; hybrid offline+online and program updates first.
 ---
 
 # FSC Portal Overhaul Requirements
@@ -35,6 +37,10 @@ The upgraded FSC Portal should become the local-first operating system for field
 - Technicians can find locations, equipment, work orders, knowledge, expenses, and backup state from one coherent workflow.
 - Managers can trust the database as the source of truth for organizations, locations, equipment, work, expenses, and sales activity.
 - EVA stays small, local, useful, and grounded in FSC data instead of trying to become a general chatbot.
+
+### Hybrid connectivity (2026-05-03)
+
+**“Offline” describes how the product must run in the field, not a refusal to go online.** The same build must remain **local-first and offline-capable** for core workflows (local DB, capture, navigation, audit) and must **use the network when available** for sync, server APIs, fleet/telematics, messaging integrations, and software updates—without treating disconnected use as a broken or “lite” mode. Planning and UX must label what requires connectivity versus what works air-gapped.
 
 ---
 
@@ -157,6 +163,10 @@ The upgraded FSC Portal should become the local-first operating system for field
 
 - R26. Teams integration and/or Flowspace integration must be evaluated as optional communication/orchestration layers, not assumed as mandatory dependencies until a clear operational workflow is chosen.
 
+**Platform and connectivity**
+
+- R36. The portal must implement **hybrid operation**: core field workflows function **without** network access on the local database, and **connected** features (sync, remote APIs, push/pull configuration, optional cloud-assisted processing) activate when service and credentials allow. Users see explicit **connectivity state**; sync and remote writes must be **safe to retry** and must not corrupt local truth when offline. *(Number R36 avoids collision with other drafts that use R27 for branch-equipment scope.)*
+
 ---
 
 ## Acceptance Examples
@@ -171,6 +181,7 @@ The upgraded FSC Portal should become the local-first operating system for field
 - AE8. **Covers R19, R20.** Given a sales user converts a prospect into an active customer, when operations receives the handoff, the organization record is reused rather than duplicated.
 - AE9. **Covers R21, R22.** Given a technician uses the mobile app, they can view assigned work, update status, capture receipts/photos, and use essential location data without relying on a separate business model.
 - AE10. **Covers R24, R25.** Given the local AI model is unavailable or too heavy for a machine, EVA still provides useful deterministic knowledge search and does not block core portal workflows.
+- AE15. **Covers R36.** Given the device has no network, when a technician completes a work order update and captures photos, the data persists locally and queues for sync without error loops. When the network returns, sync reconciles without duplicate tickets or lost attachments.
 
 ---
 
@@ -184,6 +195,7 @@ The upgraded FSC Portal should become the local-first operating system for field
 - An admin can trust backup status and recover from local data loss.
 - EVA is useful even when local LLM inference is unavailable, and better when a small model is working.
 - The next implementation plan can split this into phased work without inventing product behavior.
+- Connected features measurably improve operations when online, while **offline mode remains trustworthy** for the same core jobs (no mandatory “find Wi‑Fi to finish”).
 
 ---
 
@@ -202,6 +214,7 @@ The upgraded FSC Portal should become the local-first operating system for field
 - EVA should not become a general-purpose chatbot with unbounded internet answers.
 - Mobile apps should not become separate products with separate business rules.
 - Teams or Flowspace should not become required just to operate the local portal.
+- The product must not be designed or marketed as **offline-only**; “offline” means **offline-capable** with optional **online augmentation**.
 
 ---
 
@@ -214,6 +227,7 @@ The upgraded FSC Portal should become the local-first operating system for field
 - Build Sales and Dispatcher platforms as role-specific workspaces inside the same portal model, not disconnected apps.
 - Evaluate Teams and Flowspace after core operational flows are reliable, because integration should amplify workflows rather than compensate for missing ones.
 - Redesign EVA around grounded retrieval first, with local LLM synthesis as an enhancement, not a dependency.
+- **Hybrid connectivity:** ship **local-first** behavior first where gaps exist, then add **online** paths (sync, APIs) with conflict handling—both are first-class product requirements, not an either/or.
 
 ---
 
@@ -254,6 +268,14 @@ The upgraded FSC Portal should become the local-first operating system for field
 - [Affects R14-R16][Technical] Determine whether expense receipts should be stored as local file paths, managed documents, or backup-aware attachments.
 - [Affects R17-R18][Technical] Determine which local backup format and retention strategy best fits installed-machine use.
 - [Affects R23-R25][Needs research] Compare viable small local EVA strategies: improved FTS/ranking, embeddings, tiny ONNX model, llama.cpp-compatible local model, or hybrid retrieval plus deterministic templates.
+
+---
+
+## Roadmap sequencing (owner direction, 2026)
+
+- **Primary now:** Make **offline** and **online/hybrid** behavior reliable end-to-end (**R36**), and **refresh the rest of the program** (navigation, modules, data wiring, expenses, knowledge, operations—per phases below). This is the gating work.
+- **Fleet / vehicle GPS and deep dispatcher map from telematics:** **Roadmap only** until you can work **in front of the production GPS/fleet system** and record vendor, API, auth, and how vehicles map to techs. Do not treat GPS integration as a current sprint commitment; competitor research still informs **future** parity.
+- Inventory, equipment dossier, dispatch UX without third-party GPS, and other overhaul items proceed **without** blocking on telematics.
 
 ---
 

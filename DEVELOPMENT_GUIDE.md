@@ -1,21 +1,53 @@
 # FSC Portal Development Guide
 
-**Last Updated:** January 30, 2026
+**Last Updated:** May 3, 2026
+
+---
+
+## Canonical working directory (Flutter app)
+
+**All Flutter development and Windows builds use this folder only:**
+
+`H:\FSC-Portal\FSC-Portal`
+
+Open this path in your IDE, run `flutter pub get`, `flutter run`, and `flutter build` from here. Other copies (zip extracts, other drives) are not canonical unless you explicitly sync them into this tree.
+
+**Monorepo root** (server, docs, scripts): `H:\FSC-Portal`
+
+---
+
+## Connectivity model (product intent)
+
+**“Offline” names the lineage and the default posture (local-first), not an online ban.**
+
+The field portal is meant to **run reliably without a network** for core workflows (local SQLite/Drift, maps and data on disk, capture while disconnected). It must **also** operate as a **connected** product when service is available: sync with backend or peers, authenticated APIs (e.g. fleet GPS), push/pull updates, and any cloud-assisted features you add—without making the **offline path** a second-class or broken experience.
+
+Implementation guidance:
+
+- **Design for offline-first**, then layer **optional online** enhancements with clear UX (what works offline vs needs connectivity). The Flutter shell (`FSC-Portal`) shows **Online/Offline** (network interface) and skips non-essential HTTP such as weather auto-fetch when offline—reuse that pattern for future sync.
+- Avoid hard-coding assumptions that a tech always has signal, battery, or foreground app; vehicle/telematics and depot sync are examples of **online value-adds**, not replacements for local truth.
+- Stable builds ship from **Offline-Portal** today; hybrid behavior should be specified and tested in **FSC-Portal** before promotion.
+
+### Near-term engineering priority (2026)
+
+**Now:** Prove **offline-capable** and **online/hybrid** paths together (local truth, sync/APIs when connected, clear UX for “needs network” vs air-gapped). **Update the rest of the program** (modules, wiring, UX consistency) around that spine—Landing Pad through operations, expenses, knowledge, etc., per `docs/brainstorms/`.
+
+**Later (roadmap, not blocking current work):** **Fleet / vehicle GPS integration** and dispatcher map fed by **company telematics** wait until you can get **in front of the live system** and capture vendor/API, vehicle IDs, and mapping rules. Until then, keep GPS in **planning and competitive research only**; do not hard-schedule build work on unknown integration contracts.
 
 ---
 
 ## Project Structure Overview
 
 ```
-h:\FSC_Portal\
+H:\FSC-Portal\
 │
 ├── Offline-Portal/          ← STABLE MVP (v1.0.0)
 │   ├── Status: FROZEN
-│   ├── Purpose: Production-ready deployment
+│   ├── Purpose: Production-ready deployment (local-first; must still support online/sync when configured)
 │   ├── Database: portal_offline.sqlite
 │   └── Build: portal_offline.exe
 │
-└── FSC-Portal/              ← DEVELOPMENT (v1.1.0+)
+└── FSC-Portal/              ← DEVELOPMENT (v1.1.0+) — CANONICAL WORKDIR
     ├── Status: ACTIVE DEVELOPMENT
     ├── Purpose: Security features, improvements
     ├── Database: fsc_portal_dev.sqlite
@@ -43,7 +75,7 @@ Always work in FSC-Portal. When features are stable and tested, you can choose t
 
 ```powershell
 # 1. Navigate to development branch
-cd h:\FSC_Portal\FSC-Portal
+cd H:\FSC-Portal\FSC-Portal
 
 # 2. Ensure clean state
 flutter clean
@@ -172,7 +204,7 @@ Offline-Portal/build/windows/x64/runner/Release/portal_offline.exe
 **If using Git:**
 
 ```bash
-# From h:\FSC_Portal\FSC-Portal
+# From H:\FSC-Portal\FSC-Portal
 git init
 git add .
 git commit -m "Initial commit - cloned from Offline-Portal v1.0.0"
@@ -210,13 +242,13 @@ A: Not yet. Keep it until FSC-Portal is proven stable in production.
 
 ```powershell
 # 1. Delete broken FSC-Portal
-Remove-Item h:\FSC_Portal\FSC-Portal -Recurse -Force
+Remove-Item H:\FSC-Portal\FSC-Portal -Recurse -Force
 
 # 2. Re-clone from stable
-xcopy "h:\FSC_Portal\Offline-Portal" "h:\FSC_Portal\FSC-Portal" /E /I /H /Y
+xcopy "H:\FSC-Portal\Offline-Portal" "H:\FSC-Portal\FSC-Portal" /E /I /H /Y
 
 # 3. Restart development
-cd h:\FSC_Portal\FSC-Portal
+cd H:\FSC-Portal\FSC-Portal
 flutter pub get
 ```
 

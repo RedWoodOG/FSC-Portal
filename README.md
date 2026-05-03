@@ -2,13 +2,28 @@
 
 Complete copy of the Financial Systems Corp Company Portal project.
 
-## Location
-`/run/media/jwhite3321/New Volume1/FSC_Portal`
+## Canonical paths (authoritative)
+
+| What | Path |
+| :--- | :--- |
+| **Flutter app — build and run here** | `H:\FSC-Portal\FSC-Portal` |
+| **Stable / frozen MVP (do not develop new features here)** | `H:\FSC-Portal\Offline-Portal` |
+| **Monorepo root** (server, client, docs) | `H:\FSC-Portal` |
+
+Details: `DEVELOPMENT_GUIDE.md` at repo root.
+
+**Connectivity:** The field app is **local-first / offline-capable** (must run core workflows without a network) and **hybrid** (sync, backend, and integrations when online). “Offline” in naming reflects that posture, not a refusal to connect.
+
+## Location (legacy reference only)
+
+`/run/media/jwhite3321/New Volume1/FSC_Portal` — superseded by `H:\FSC-Portal` on this machine.
 
 ## Project Structure
 
 ```
-FSC_Portal/
+H:\FSC-Portal\
+├── FSC-Portal/          # Flutter field app — CANONICAL WORKDIR
+├── Offline-Portal/      # Frozen stable Flutter line
 ├── server/              # Node.js + Express + Prisma backend
 │   ├── src/            # TypeScript source code
 │   │   ├── routes/     # API routes
@@ -25,7 +40,7 @@ FSC_Portal/
 ### 1. Install Dependencies
 
 ```bash
-cd "/run/media/jwhite3321/New Volume1/FSC_Portal/server"
+cd "H:\FSC-Portal\server"
 npm install
 ```
 
