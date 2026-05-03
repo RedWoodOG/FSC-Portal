@@ -58,3 +58,7 @@ coverage/
 # Misc
 .cache/
 .temp/
+
+# Local Flutter Windows release zips (upload to GitHub Releases, do not commit)
+fsc_portal-windows-*.zip
+
