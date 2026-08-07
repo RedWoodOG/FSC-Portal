@@ -1,0 +1,52 @@
+1731 Aspen Silver, San Antonio TX 78245==>[redacted-address]
+8816 Tradeway, San Antonio TX 78217 Suite 116==>[redacted-address]
+29.4188531==>29.4241
+-98.6832171==>-98.4936
+29.5206537==>29.5150
+-98.4582949==>-98.4600
+regex:[A-Za-z.]+@fi?n[a-z]*ncialsystemscorp\.com==>[redacted-email]
+regex:\bAaron Osmer\b==>Demo Technician 1
+regex:\bJeremy Bennett\b==>Demo Technician 2
+regex:\bChad Mitchel{1,2}\b==>Demo Technician 3
+regex:\bCathy Vanderpool\b==>Demo Technician 4
+regex:\bEli Tarvin\b==>Demo Technician 5
+regex:\bJim Wacker\b==>Demo Technician 6
+regex:\bOmer Idrizi\b==>Demo Technician 7
+regex:\bRichard Dutton\b==>Demo Technician 8
+regex:\bJoseph Whit(e|field)\b==>Demo Technician
+1731 Aspen Silver==>[redacted-address]
+8816 Tradeway==>[redacted-address]
+regex:[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]*ncialsystemscorp\.com==>[redacted-email]
+regex:\bProsperity Bank\b==>Gulf Coast Bank
+regex:\bProsperity\b==>GulfCoast
+regex:\bprosperity\b==>gulfcoast
+regex:\bRBFCU\b==>Northwind
+regex:\brbfcu\b==>northwind
+regex:\bJefferson Bank\b==>Lone Star Bank
+regex:\bJefferson\b==>LoneStar
+regex:\bjefferson\b==>lonestar
+regex:'aosmer'==>'tech1'
+regex:'jbennett'==>'tech2'
+regex:'cmitchel'==>'tech3'
+regex:'cvanderpool'==>'tech4'
+regex:'etarvin'==>'tech5'
+regex:'jwacker'==>'tech6'
+regex:'oidrizi'==>'tech7'
+regex:'rdutton'==>'tech8'
+regex:\baosmer\b==>tech1
+regex:\bjbennett\b==>tech2
+regex:\bcmitchel\b==>tech3
+regex:\bcvanderpool\b==>tech4
+regex:\betarvin\b==>tech5
+regex:\bjwacker\b==>tech6
+regex:\boidrizi\b==>tech7
+regex:\brdutton\b==>tech8
+regex:(?i)prosperity==>GulfCoast
+regex:(?i)rbfcu==>Northwind
+regex:(?i)jefferson==>LoneStar
+regex:(?i)joseph's house==>Home Base
+regex:(?i)josephshouse==>homeBase
+regex:(?i)aaron's house==>Home Base 2
+regex:(?i)aaronshouse==>homeBase2
+regex:(?i)joseph==>DemoUser
+regex:(?i)\baaron\b==>DemoUser2
